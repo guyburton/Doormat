@@ -99,6 +99,9 @@ function markAllAsSeen() {
         var button = document.getElementById('btn-view-all');
         button.innerHTML = "View All";
         s3ListFiles();
+        chrome.browserAction.setBadgeText({
+          text: ""
+        });
     }
 }
 

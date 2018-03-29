@@ -4,24 +4,20 @@ var alarm = chrome.alarms.create('checkForNewFiles', {
 	periodInMinutes: 1
 });
 
-alarm.onAlarm.addListener(function() {
+chrome.alarms.onAlarm.addListener(function() {
+	console.log("Checking for modified files")
 	chrome.storage.sync.get({
-	  userConfig: {
-	      groups : [ 
-	        group('Test Group', 'doormat-test')
-	      ],
-	      region: 'eu-west-2', 
-	      accesskey: 'AKIAJEODSG6V45IGL5YQ',
-	      secretkey: '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'
-	  },
+	  userConfig: null,
 	  lastSeenDate : null
 	}, function(items) {
 	  AWS.config.update({
-	    region: currentConfig.userConfig.region,
-	    credentials: new AWS.Credentials(currentConfig.userConfig.accesskey, currentConfig.userConfig.secretkey)
+	    region: items.userConfig.region,
+	    credentials: new AWS.Credentials(items.userConfig.accesskey, items.userConfig.secretkey)
 	  });
-
-	  var bucketName = currentConfig.userConfig.groups[0].bucket;
+	  if (!items.userConfig) {
+  		return;
+	  }
+	  var bucketName = items.userConfig.bucket;
 	  var s3 = new AWS.S3({
 	      apiVersion: '2006-03-01',
 	      params: { Bucket: bucketName }
@@ -36,24 +32,25 @@ alarm.onAlarm.addListener(function() {
 	    var files = data["Contents"];
 	    var modifiedFiles = []
 	    var lastSeen = new Date(Date.parse(items.lastSeenDate));
-		files.forEach(function(file)) {
+		files.forEach(function(file) {
 		    if (file["Key"].slice(-1) != '/') {
 		      var modified = new Date(Date.parse(file.LastModified));
 		      if (modified > lastSeen) {
 		      	modifiedFiles.push(file["Key"]);
 		      }
 		    }
-		}
+		});
+
+	    console.log('Found modified: ' + modifiedFiles + '/' + files.length);
 		if (modifiedFiles.length > 0) {
 			chrome.browserAction.setBadgeText({
-				text: modifiedFiles.length;
+				text: "" + modifiedFiles.length
 			});
 		} else {
 			chrome.browserAction.setBadgeText({
 				text: ""
 			});
 		}
-
-
+	});
 	});
 });

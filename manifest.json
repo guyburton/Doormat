@@ -19,7 +19,7 @@
   },
   "icons": { "256": "envelope_black.png" },
   "background": {
-    "scripts": ["poller.js"],
+    "scripts": ["lib/aws-sdk-2.215.1.min.js", "poller.js"],
     "persistent": false
   }
 }
