@@ -1,0 +1,25 @@
+{
+  "name": "Doormat",
+  "description": "User Interface for S3 file management",
+  "version": "0.1",
+  "manifest_version": 2,
+  "permissions": [
+  	"tabs",
+    "storage",
+    "alarms",
+    "https://s3.eu-west-2.amazonaws.com/"
+  ],
+  "options_ui": {
+    "page": "options/options.html",
+    "chrome_style": true
+  },
+  "browser_action": {
+    "default_popup": "popup/doormat_popup.html",
+    "default_icon": "envelope_black.png"
+  },
+  "icons": { "256": "envelope_black.png" },
+  "background": {
+    "scripts": ["poller.js"],
+    "persistent": false
+  }
+}

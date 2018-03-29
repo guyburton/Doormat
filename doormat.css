@@ -1,0 +1,60 @@
+
+body {
+	margin-left: 20px;
+	margin-top: 20px;
+}
+
+#top-bar {
+	margin-bottom: 10px;
+}
+
+button {
+	height: 30px;
+}
+
+#img-logo {
+	margin-right: 5px;
+	vertical-align: center;
+}
+
+#txt-logo {
+	display: inline;
+	vertical-align: top;
+	line-height: 1.35em;
+}
+
+#container {
+	font-size: 1.2em;	
+	width: 500px;
+}
+
+.modified {
+	color: #d0cccc;
+	font-size: 0.8em;
+	float: right;
+}
+
+.detail-message {
+	color: #d0cccc;
+	font-size: 0.8em;
+}
+
+.seen {
+	display: none;
+}
+
+.file {
+	line-height: 2em;
+}
+
+.show-all-files > .seen  {
+	display: inline;
+}
+
+.show-all-files > .detail-message {
+	display: none;
+}
+
+.hidden {
+	display: none;
+}

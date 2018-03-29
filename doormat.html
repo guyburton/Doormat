@@ -1,0 +1,23 @@
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="doormat.css">
+</head>
+<body>
+	<script src="lib/aws-sdk-2.215.1.min.js"></script>
+	<div>
+		<img id="img-logo" src="envelope_black.png" width="32"></img>
+		<h1 id="txt-logo">Doormat</h1></div>
+
+	<div id="top-bar">
+		<p id="last-seen">Last saw files at <span id="lbl-last-seen"></span></p>
+		<button id="btn-refresh">Refresh</button>
+		<button id="btn-mark-all">Mark All As Seen</button>
+		<button id="btn-view-all">View All</button>
+	</div>
+	<div id="container">
+	</div>
+
+	<script src="doormat.js"></script>
+
+</body>
+</html>

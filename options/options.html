@@ -1,0 +1,31 @@
+<html>
+<head>
+<style>
+
+#load-config-file {
+	margin-top: 10px;
+}
+
+#save {
+	margin-top: 10px;
+}
+
+#txt-config-file {
+	width: 100%;
+}
+
+</style>
+</head>	
+<body>
+	<form id="form">
+		<label>Configuration file URL:</label><input type="text" id="txt-config-file"></input><button id="load-config-file">Load</button>
+		<label><p>Or enter JSON configuration directly below:</p>
+			<textarea rows="20" cols="80" id="txt-json-config"></textarea>
+		</label>
+	</form>
+
+	<div id="status"></div>
+	<button id="save">Save</button>
+	<script src="options.js"></script>
+</body>
+</html>
