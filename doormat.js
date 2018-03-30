@@ -52,34 +52,30 @@ function s3ListFiles() {
       params: { Bucket: bucketName }
   });
   
-  try {
-    s3.listObjects({}, function(err, data) {
-      if (err) {
-        console.log(err, err.stack);
-        var container = document.getElementById('container');
-        container.innerHTML = 'Error listing files: ' + err.message;
-        return;
-      }
+  var container = document.getElementById('status'); 
+  container.innerHTML = 'Getting bucket listing...';
+  s3.listObjects({}, function(err, data) {
+    if (err) {
+      console.log(err, err.stack);
+      container.innerHTML = 'Error listing files: ' + err.message;
+      return;
+    }
 
-      var files = data["Contents"];
-      filesExcludingFolders = []
-      for (var i=0; i<files.length; i++) {
-        var file = files[i];
-        if (file["Key"].slice(-1) != '/') {
-          filesExcludingFolders.push({
-            name: file.Key,
-            modified: new Date(Date.parse(file.LastModified))
-          })
-        }
+    container.innerHTML = '';
+    var files = data["Contents"];
+    filesExcludingFolders = []
+    for (var i=0; i<files.length; i++) {
+      var file = files[i];
+      if (file["Key"].slice(-1) != '/') {
+        filesExcludingFolders.push({
+          name: file.Key,
+          modified: new Date(Date.parse(file.LastModified))
+        })
       }
+    }
 
-      filesLoaded(filesExcludingFolders);
-   });
-  } catch(err) {
-    console.log(err, err.stack);
-    var container = document.getElementById('container');
-    container.innerHTML = 'Error listing files: ' + err.message;
-  }
+    filesLoaded(filesExcludingFolders);
+  });  
 }
 
 function s3DownloadUrl(file, bucket, callback) {

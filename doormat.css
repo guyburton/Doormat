@@ -39,8 +39,8 @@ button {
 	font-size: 0.8em;
 }
 
-br {
-	line-height: 0px;
+#status {
+	color: #d0cccc;
 }
 
 .seen {
