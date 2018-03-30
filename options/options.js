@@ -1,31 +1,27 @@
 
 var txtConfigFile = document.getElementById('txt-config-file');
 var txtJsonConfig = document.getElementById('txt-json-config');
-var status = document.getElementById('status');
 
-// Saves options to chrome.storage
 function saveOptions() {
-  var config = txtJsonConfig.value;
-
   try {
-    var userConfig = JSON.parse(config);
+    var userConfig = JSON.parse(txtJsonConfig.value);
+    chrome.storage.sync.set({
+      userConfig: userConfig
+    }, function() {
+      document.getElementById('status').innerHTML = 'Options saved.';
+      setTimeout(function() {
+       document.getElementById('status').innerHTML = '';
+      },3000);
+    });
   } catch (err) {
-    status.textContent = 'Error parsing JSON config: ' + err.message;
+    document.getElementById('status').innerHTML = 'Error parsing JSON config: ' + err.message;
     return;
   }
-  chrome.storage.sync.set({
-    userConfig: userConfig
-  }, function() {
-    status.textContent = 'Options saved.';
-    setTimeout(function() {
-      status.textContent = '';
-    },3000);
-  });
 }
 
 
 // Restores form state using the preferences
-// stored in chrome.storage.
+// stored in chrome.storage.  
 function restoreOptions() {
   // Use default values
   chrome.storage.sync.get({
@@ -53,14 +49,14 @@ function loadConfigFile(e) {
         }
         else {
           console.log(xmlhttp.status + ' ' + xmlhttp.statusText)
-          status.textContent = 'Error getting config file: ' + xmlhttp.status + ' ' + xmlhttp.statusText;
+          document.getElementById('status').innerHTML = 'Error getting config file: ' + xmlhttp.status + ' ' + xmlhttp.statusText;
         }     
       };
     }
     xmlhttp.send();
   } catch (err) {    
     console.log(err);
-    status.textContent = 'Error getting config file: ' + err.message;
+    document.getElementById('status').innerHTML = 'Error getting config file: ' + err.message;
   }
 }
 

@@ -3,14 +3,13 @@ var currentConfig = null;
 function filesLoaded(files) {
   var container = document.getElementById('container');
   container.innerHTML = ""
-  var lastSeen = currentConfig.lastSeenDate == null ? null : new Date(Date.parse(currentConfig.lastSeenDate));
   if (files.length == 0) {
       container.innerHTML = 'No files here';
   } else {
     files.sort(fileComparison);
     var hiddenCount = 0;
     files.forEach(function(file) {
-      var hidden = lastSeen != null && file.modified < lastSeen;
+      var hidden = currentConfig.lastSeenDate != null && file.modified < currentConfig.lastSeenDate;
       if (hidden) {
         hiddenCount ++;
       }
@@ -18,7 +17,7 @@ function filesLoaded(files) {
       var clazz = hidden ? 'seen file' : 'unseen file';
       var id = 'file-' + file.name;
       container.innerHTML += '<p class="' + clazz + '""><a href="#" id="' + id + '" class="link-download" >'
-          + file.name + '</a> <span class="modified">' + formatDateTime(file.modified) + "</span><br /></p>"
+          + file.name + '</a> <span class="modified">' + formatDateTime(file.modified) + "</span></p><br />"
 
       s3DownloadUrl(file.name, currentConfig.userConfig.bucket, function (err, url) {
         if (err) {
@@ -38,12 +37,11 @@ function filesLoaded(files) {
     }
   }
 
-  if (lastSeen) {
+  if (currentConfig.lastSeenDate) {
     var lastSeenLabel = document.getElementById('lbl-last-seen');
-    lastSeenLabel.innerHTML = formatDateTime(lastSeen);
-  } else {
+    lastSeenLabel.innerHTML = formatDateTime(currentConfig.lastSeenDate);
     var lastSeenLine = document.getElementById('last-seen');
-    lastSeenLine.className += 'hidden';
+    lastSeenLine.className = lastSeenLine.className.replace('hidden', '');
   }
 } 
 
@@ -53,27 +51,35 @@ function s3ListFiles() {
       apiVersion: '2006-03-01',
       params: { Bucket: bucketName }
   });
-
-  s3.listObjects({}, function(err, data) {
-    if (err) {
-      console.log(err, err.stack);
-      return;
-    }
-
-    var files = data["Contents"];
-    filesExcludingFolders = []
-    for (var i=0; i<files.length; i++) {
-      var file = files[i];
-      if (file["Key"].slice(-1) != '/') {
-        filesExcludingFolders.push({
-          name: file.Key,
-          modified: new Date(Date.parse(file.LastModified))
-        })
+  
+  try {
+    s3.listObjects({}, function(err, data) {
+      if (err) {
+        console.log(err, err.stack);
+        var container = document.getElementById('container');
+        container.innerHTML = 'Error listing files: ' + err.message;
+        return;
       }
-    }
 
-    filesLoaded(filesExcludingFolders);
- });
+      var files = data["Contents"];
+      filesExcludingFolders = []
+      for (var i=0; i<files.length; i++) {
+        var file = files[i];
+        if (file["Key"].slice(-1) != '/') {
+          filesExcludingFolders.push({
+            name: file.Key,
+            modified: new Date(Date.parse(file.LastModified))
+          })
+        }
+      }
+
+      filesLoaded(filesExcludingFolders);
+   });
+  } catch(err) {
+    console.log(err, err.stack);
+    var container = document.getElementById('container');
+    container.innerHTML = 'Error listing files: ' + err.message;
+  }
 }
 
 function s3DownloadUrl(file, bucket, callback) {
@@ -104,15 +110,17 @@ function showAllFiles() {
   }
 }
 
+function saveConfig(config) {
+  chrome.storage.sync.set({
+      userConfig: config.userConfig,
+      lastSeenDate: config.lastSeenDate.toISOString()
+  });
+}
+
 function markAllAsSeen() {
     if (currentConfig) {
-        currentConfig.lastSeenDate = new Date().toISOString();
-        chrome.storage.sync.set(currentConfig, function() {
-            status.textContent = 'Options saved.';
-            setTimeout(function() {
-                status.textContent = '';
-          }, 3000);
-        });
+        currentConfig.lastSeenDate = new Date();
+        saveConfig(currentConfig);
         container.className = container.className.replace('show-all-files', "");
         var button = document.getElementById('btn-view-all');
         button.innerHTML = "View All";
@@ -153,18 +161,25 @@ document.getElementById('btn-view-all').addEventListener('click', showAllFiles);
 document.getElementById('btn-mark-all').addEventListener('click', markAllAsSeen);
 document.getElementById('btn-refresh').addEventListener('click', refresh);
 
-chrome.storage.sync.get({
-  userConfig: null,
-  lastSeenDate : null
-}, function(items) {
-  if (!items.userConfig) {
-    return;
-  }
-  currentConfig = items;
-  AWS.config.update({
-    region: currentConfig.userConfig.region,
-    credentials: new AWS.Credentials(currentConfig.userConfig.accesskey, currentConfig.userConfig.secretkey)
+function loadOptions(callback) {
+  chrome.storage.sync.get({
+    userConfig: null,
+    lastSeenDate : null
+  }, function(items) {
+    if (!items.userConfig) {
+      return;
+    }
+    currentConfig = items;
+    currentConfig.lastSeenDate = currentConfig.lastSeenDate == null ? null : new Date(Date.parse(currentConfig.lastSeenDate));
+    AWS.config.update({
+      region: currentConfig.userConfig.region,
+      credentials: new AWS.Credentials(currentConfig.userConfig.accesskey, currentConfig.userConfig.secretkey)
+    });
+    if (callback) {
+      callback();
+    }
   });
-  refresh();
-});
+}
+
+loadOptions(refresh);
 
