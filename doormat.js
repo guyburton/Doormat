@@ -14,8 +14,25 @@ function filesLoaded(files) {
       if (hidden) {
         hiddenCount ++;
       }
-      container.innerHTML += formatFileEntry(file.name, file.modified, hidden, file.url);
-    });
+
+      var clazz = hidden ? 'seen file' : 'unseen file';
+      var id = 'file-' + file.name;
+      container.innerHTML += '<p class="' + clazz + '""><a href="#" id="' + id + '" class="link-download" >'
+          + file.name + '</a> <span class="modified">' + formatDateTime(file.modified) + "</span><br /></p>"
+
+      s3DownloadUrl(file.name, currentConfig.userConfig.bucket, function (err, url) {
+        if (err) {
+          console.log(err, url);
+          return;
+        }
+        var fileElement = document.getElementById(id);
+        fileElement.addEventListener('click', function() {
+          chrome.downloads.download({
+            url: url
+          });
+        });
+      })
+   });
     if (hiddenCount == files.length) {
       container.innerHTML += '<p class="detail-message">No unseen files (' + hiddenCount + ' seen)</p>';
     }
@@ -50,8 +67,7 @@ function s3ListFiles() {
       if (file["Key"].slice(-1) != '/') {
         filesExcludingFolders.push({
           name: file.Key,
-          modified: new Date(Date.parse(file.LastModified)),
-          url: s3DownloadUrl(file.Key, bucketName, currentConfig.userConfig.region)
+          modified: new Date(Date.parse(file.LastModified))
         })
       }
     }
@@ -60,14 +76,16 @@ function s3ListFiles() {
  });
 }
 
-function s3DownloadUrl(key, bucket, region) {
-  return 'https://s3.'+ region + '.amazonaws.com/' + bucket + '/' + key;
-}
+function s3DownloadUrl(file, bucket, callback) {
+  var s3 = new AWS.S3({
+    apiVersion: '2006-03-01',
+    params: { Bucket: currentConfig.userConfig.bucket }
+  });
 
-function formatFileEntry(file, lastModified, hidden, url) {
-  var clazz = hidden ? 'seen file' : 'unseen file';
-  return '<p class="' + clazz + '""><a href="' + url + '">'
-          + file + '</a> <span class="modified">' + formatDateTime(lastModified) + "</span><br /></p>"
+  s3.getSignedUrl('getObject', {
+      Bucket: currentConfig.userConfig.bucket,
+      Key: file
+  }, callback);
 }
 
 function formatDateTime(date) {

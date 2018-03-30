@@ -7,6 +7,7 @@
   	"tabs",
     "storage",
     "alarms",
+    "downloads",
     "https://s3.eu-west-2.amazonaws.com/"
   ],
   "options_ui": {
