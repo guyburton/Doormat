@@ -1,27 +1,28 @@
 <html>
 <head>
 <style>
-
 #load-config-file {
-	margin-top: 10px;
-}
-
-#save {
-	margin-top: 10px;
+	display: inline;
 }
 
 #txt-config-file {
-	width: 100%;
+	width: 50%;
 }
-
+#save {
+	margin-top: 10px;
+}
+#txt-json-config {
+	margin-bottom: 10px;
+}
 </style>
 </head>	
 <body>
-	<form id="form">
-		<label>Configuration file URL:</label><input type="text" id="txt-config-file"></input><button id="load-config-file">Load</button>
-		<label><p>Or enter JSON configuration directly below:</p>
-			<textarea rows="20" cols="80" id="txt-json-config"></textarea>
+	<form id="form">		
+		<label>Edit/enter configuration directly below:
 		</label>
+			<textarea rows="20" cols="80" id="txt-json-config"></textarea>
+		<label>Load configuration from URL:</label>
+		<input type="text" id="txt-config-file"></input><button id="load-config-file">Load</button>
 	</form>
 
 	<div id="status"></div>

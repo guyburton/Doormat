@@ -29,9 +29,11 @@ function saveOptions() {
 function restoreOptions() {
   // Use default values
   chrome.storage.sync.get({
-      userConfig: ""
+      userConfig: null
   }, function(items) {
-    txtJsonConfig.value = items.userConfig;
+    if (items.userConfig) {
+      txtJsonConfig.value = JSON.stringify(items.userConfig, null, 2);
+    }
   });
 }
 
