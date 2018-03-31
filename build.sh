@@ -4,4 +4,4 @@ file=doormat-$version.zip
 echo "Building $file"
 
 rm -f $file
-zip $file lib popup *.css *.html *.js *.png *.json
+zip $file lib popup lib/* popup/* *.css *.html *.js *.png *.json
