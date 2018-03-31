@@ -5,3 +5,6 @@ echo "Building $file"
 
 rm -f $file
 zip $file lib popup lib/* popup/* *.css *.html *.js *.png *.json
+mv $file builds/$file
+
+aws s3 sync builds s3://doormat-builds
