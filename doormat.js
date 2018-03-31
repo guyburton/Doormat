@@ -43,6 +43,8 @@ function filesLoaded(files, config) {
     lastSeenLabel.innerHTML = formatDateTime(config.lastSeenDate);
     var lastSeenLine = document.getElementById('last-seen');
     lastSeenLine.className = lastSeenLine.className.replace('hidden', '');
+    var lastSeenLine = document.getElementById('btn-view-all');
+    lastSeenLine.className = lastSeenLine.className.replace('hidden', '');
   }
 } 
 

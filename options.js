@@ -16,10 +16,10 @@ function setStatus(message) {
 
 function saveUserOptions() {
   try {
-    setStatus('Saving options...')
-    
+    setStatus('Saving options...')    
     if (txtJsonConfig.value.trim().length ==0) {
       saveOptions(defaultUserConfig);
+      refresh();
       return;
     }
 
@@ -61,10 +61,42 @@ function loadOptions(callback) {
   });
 }
 
+function refresh() {
+  if (txtJsonConfig) {
+    loadOptions(config => {
+      txtJsonConfig.value = JSON.stringify(config.userConfig, null, 2);
+      if (config.userConfig.bucket == defaultUserConfig.bucket ||
+          config.userConfig.accesskey == defaultUserConfig.accesskey ||
+          config.secretkey == defaultUserConfig.secretkey) {
+        document.getElementById('lbl-warning').innerHTML = 
+        'This is an <strong>example</strong> configuration- ' +
+        'change this to your own AWS S3 bucket and credentials';
+      } else {
+        document.getElementById('lbl-warning').innerHTML = '';
+      }
+    });
+  }
+}
+
+function loadExampleUserConfig() {
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", chrome.extension.getURL('/example_config.json'), true);
+  xhr.onreadystatechange = e => {
+    if (xhr.readyState == xhr.DONE) {
+      if (xhr.status == 200) {
+        defaultUserConfig = JSON.parse(xhr.responseText);
+      }
+      refresh();
+    }
+  };
+  xhr.send();
+}
+
 var txtJsonConfig = document.getElementById('txt-json-config');
 if (txtJsonConfig) {
-  loadOptions(config => txtJsonConfig.value = JSON.stringify(config.userConfig, null, 2));
+  loadExampleUserConfig();
 }
+
 var saveButton = document.getElementById('save');
 if (saveButton) {
   saveButton.addEventListener('click', saveUserOptions);   
