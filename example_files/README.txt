@@ -1,0 +1,1 @@
+I am an example file. This is an example s3 bucket for demonstrating Doormat which has read only access.
