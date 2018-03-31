@@ -1,8 +1,9 @@
 {
   "name": "Doormat",
   "short_name": "Doormat",
+  "author": "GB-Labs",
   "description": "User Interface for S3 file management",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "manifest_version": 2,
   "permissions": [
   	"tabs",
