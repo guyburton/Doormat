@@ -8,28 +8,32 @@
 #txt-json-config {
 	margin-bottom: 10px;
 }
-#status {
-	color: #d0cccc;;
+#lbl-status {
+	color: #d0cccc;
 }
-#license {
+#lbl-license {
 	margin-top: 20px;
+}
+#lbl-version {
+	margin-bottom: 20px;
+	color: #d0cccc;
 }
 </style>
 </head>	
 <body>
+	<div id="lbl-version"></div>
 	<form id="form">		
 		<label>Edit/enter configuration directly below:
 		</label>
 			<textarea rows="20" cols="80" id="txt-json-config"></textarea>
 	</form>
 
-	<div id="status"></div>
+	<div id="lbl-status"></div>
 	<button id="save">Save</button>
-
-	<div id="license">Icons made by <a href="https://www.flaticon.com/authors/designmodo" title="Designmodo">Designmodo</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a>
-	</div>
-
 	
+	<div id="lbl-license">Icons made by <a href="https://www.flaticon.com/authors/designmodo" title="Designmodo">Designmodo</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a>
+	</div>
 	<script src="options.js"></script>
+	<script src="version.js"></script>
 </body>
 </html>

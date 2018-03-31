@@ -7,10 +7,10 @@ var defaultUserConfig = {
 };  
 
 function setStatus(message) {
-  var status = document.getElementById('status');
+  var status = document.getElementById('lbl-status');
   if (status) {
     status.innerHTML = message;
-    setTimeout(() => document.getElementById('status').innerHTML = '', 3000);
+    setTimeout(() => status.innerHTML = '', 3000);
   }
 }
 
