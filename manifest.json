@@ -10,7 +10,7 @@
     "downloads"
   ],
   "options_ui": {
-    "page": "options/options.html",
+    "page": "options.html",
     "chrome_style": true
   },
   "browser_action": {

@@ -47,12 +47,8 @@ button {
 	display: none;
 }
 
-.file {
-	line-height: 2em;
-}
-
 .show-all-files > .seen  {
-	display: inline;
+	display: block;
 }
 
 .show-all-files > .detail-message {

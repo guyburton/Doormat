@@ -1,6 +1,5 @@
-var currentConfig = null;
 
-function filesLoaded(files) {
+function filesLoaded(files, config) {
   var container = document.getElementById('container');
   container.innerHTML = ""
   if (files.length == 0) {
@@ -9,7 +8,7 @@ function filesLoaded(files) {
     files.sort(fileComparison);
     var hiddenCount = 0;
     files.forEach(function(file) {
-      var hidden = currentConfig.lastSeenDate != null && file.modified < currentConfig.lastSeenDate;
+      var hidden = config.lastSeenDate != null && file.modified < config.lastSeenDate;
       if (hidden) {
         hiddenCount ++;
       }
@@ -17,15 +16,17 @@ function filesLoaded(files) {
       var clazz = hidden ? 'seen file' : 'unseen file';
       var id = 'file-' + file.name;
       container.innerHTML += '<p class="' + clazz + '""><a href="#" id="' + id + '" class="link-download" >'
-          + file.name + '</a> <span class="modified">' + formatDateTime(file.modified) + "</span></p><br />"
+          + file.name + '</a> <span class="modified">' + formatDateTime(file.modified) + "</span><br /></p>"
 
-      s3DownloadUrl(file.name, currentConfig.userConfig.bucket, function (err, url) {
+      s3DownloadUrl(file.name, config.userConfig.bucket, function (err, url) {
         if (err) {
           console.log(err, url);
           return;
         }
         var fileElement = document.getElementById(id);
-        fileElement.addEventListener('click', function() {
+        fileElement.setAttribute('href', url);
+        fileElement.addEventListener('click', function(e) {
+          e.preventDefault();
           chrome.downloads.download({
             url: url
           });
@@ -37,31 +38,35 @@ function filesLoaded(files) {
     }
   }
 
-  if (currentConfig.lastSeenDate) {
+  if (config.lastSeenDate) {
     var lastSeenLabel = document.getElementById('lbl-last-seen');
-    lastSeenLabel.innerHTML = formatDateTime(currentConfig.lastSeenDate);
+    lastSeenLabel.innerHTML = formatDateTime(config.lastSeenDate);
     var lastSeenLine = document.getElementById('last-seen');
     lastSeenLine.className = lastSeenLine.className.replace('hidden', '');
   }
 } 
 
-function s3ListFiles() {
-  var bucketName = currentConfig.userConfig.bucket;
+function setStatus(message) {
+  var container = document.getElementById('status'); 
+  container.innerHTML = message;
+}
+
+function s3ListFiles(config) {
+  var bucketName = config.userConfig.bucket;
   var s3 = new AWS.S3({
       apiVersion: '2006-03-01',
       params: { Bucket: bucketName }
   });
   
-  var container = document.getElementById('status'); 
-  container.innerHTML = 'Getting bucket listing...';
+  setStatus('Getting bucket listing...');
   s3.listObjects({}, function(err, data) {
     if (err) {
       console.log(err, err.stack);
-      container.innerHTML = 'Error listing files: ' + err.message;
+      setStatus('Error listing files: ' + err.message);
       return;
     }
 
-    container.innerHTML = '';
+    setStatus('');
     var files = data["Contents"];
     filesExcludingFolders = []
     for (var i=0; i<files.length; i++) {
@@ -74,18 +79,18 @@ function s3ListFiles() {
       }
     }
 
-    filesLoaded(filesExcludingFolders);
+    filesLoaded(filesExcludingFolders, config);
   });  
 }
 
 function s3DownloadUrl(file, bucket, callback) {
   var s3 = new AWS.S3({
     apiVersion: '2006-03-01',
-    params: { Bucket: currentConfig.userConfig.bucket }
+    params: { Bucket: bucket }
   });
 
   s3.getSignedUrl('getObject', {
-      Bucket: currentConfig.userConfig.bucket,
+      Bucket: bucket,
       Key: file
   }, callback);
 }
@@ -106,25 +111,15 @@ function showAllFiles() {
   }
 }
 
-function saveConfig(config) {
-  chrome.storage.sync.set({
-      userConfig: config.userConfig,
-      lastSeenDate: config.lastSeenDate.toISOString()
-  });
-}
-
 function markAllAsSeen() {
-    if (currentConfig) {
-        currentConfig.lastSeenDate = new Date();
-        saveConfig(currentConfig);
-        container.className = container.className.replace('show-all-files', "");
-        var button = document.getElementById('btn-view-all');
-        button.innerHTML = "View All";
-        s3ListFiles();
-        chrome.browserAction.setBadgeText({
-          text: ""
-        });
-    }
+  container.className = container.className.replace('show-all-files', "");
+  var button = document.getElementById('btn-view-all');
+  button.innerHTML = "View All";
+  chrome.browserAction.setBadgeText({
+    text: ""
+  });
+
+  setLastSeenDate(new Date(), refresh);
 }
 
 function fileComparison(fileA, fileB) {
@@ -150,32 +145,29 @@ function fileComparison(fileA, fileB) {
 }
 
 function refresh() {
-  s3ListFiles();
+  loadOptions(config => {
+    if (config.userConfig.accesskey == defaultUserConfig.accesskey || config.userConfig.secretkey == defaultUserConfig.secretkey) {
+      setStatus('You need to set your AWS IAM credentials in the options page');
+      return;
+    }
+    if (config.userConfig.region == defaultUserConfig.region) {
+      setStatus('You need to set your AWS region in the options page');
+    }
+    if (config.userConfig.bucket == defaultUserConfig.bucket) {
+      setStatus('You need to set your AWS bucket name in the options page');
+    }
+    AWS.config.update({
+      region: config.userConfig.region,
+      credentials: new AWS.Credentials(config.userConfig.accesskey, config.userConfig.secretkey)
+    });
+
+    s3ListFiles(config);
+  });
 }
 
 document.getElementById('btn-view-all').addEventListener('click', showAllFiles);
 document.getElementById('btn-mark-all').addEventListener('click', markAllAsSeen);
 document.getElementById('btn-refresh').addEventListener('click', refresh);
 
-function loadOptions(callback) {
-  chrome.storage.sync.get({
-    userConfig: null,
-    lastSeenDate : null
-  }, function(items) {
-    if (!items.userConfig) {
-      return;
-    }
-    currentConfig = items;
-    currentConfig.lastSeenDate = currentConfig.lastSeenDate == null ? null : new Date(Date.parse(currentConfig.lastSeenDate));
-    AWS.config.update({
-      region: currentConfig.userConfig.region,
-      credentials: new AWS.Credentials(currentConfig.userConfig.accesskey, currentConfig.userConfig.secretkey)
-    });
-    if (callback) {
-      callback();
-    }
-  });
-}
-
-loadOptions(refresh);
+refresh();
 
